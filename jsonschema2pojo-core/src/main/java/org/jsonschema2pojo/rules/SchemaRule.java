@@ -21,6 +21,7 @@ import static org.apache.commons.lang3.StringUtils.*;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
+import com.sun.codemodel.JDefinedClass;
 import org.jsonschema2pojo.Jsonschema2Pojo;
 import org.jsonschema2pojo.Schema;
 import org.jsonschema2pojo.exception.GenerationException;
@@ -74,6 +75,28 @@ public class SchemaRule implements Rule<JClassContainer, JType> {
             }
 
             return apply(nameFromRef != null ? nameFromRef : nodeName, schemaNode, parent, generatableType, schema);
+        }
+
+        if (schemaNode.has("allOf")) {
+            JType superclass = null;
+            JType jtype = null;
+            for (JsonNode node : schemaNode.get("allOf")) {
+                if (node.has("$ref")) {
+                    final String nameFromRef = nameFromRef(node.get("$ref").asText());
+                    schema = ruleFactory.getSchemaStore().create(schema, node.get("$ref").asText(), ruleFactory.getGenerationConfig().getRefFragmentPathDelimiters());
+                    JsonNode currentSchemaNode = schema.getContent();
+
+                    if (schema.isGenerated()) {
+                        return schema.getJavaType();
+                    } else {
+                        superclass = apply(nameFromRef != null ? nameFromRef : nodeName, currentSchemaNode, parent, generatableType, schema);
+                    }
+                } else {
+                    jtype = ruleFactory.getTypeRule().apply(nodeName, node, parent, generatableType.getPackage(), schema);
+                }
+            }
+            ((JDefinedClass) jtype)._extends((JDefinedClass) superclass);
+            return jtype;
         }
 
         schema = schema.deriveChildSchema(schemaNode);
