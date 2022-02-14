@@ -44,3 +44,14 @@ Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/
 <a href="https://www.yourkit.com"><img src="https://www.yourkit.com/images/yklogo.png" alt="YourKit" title="YourKit" align="right" width="185"/></a>
 
 Special thanks to YourKit, who support this project through a free license for their full-featured [YourKit Java Profiler](https://www.yourkit.com/java/profiler).
+
+### Partial `allOf` support
+
+This fork consist of a modification to allow partial support of the `allOf` keyword. The cases of `allOf` suported by this modification are the following:
+  * `allOf` must consist of an array with 2, and only 2, elements.
+  * One of the elements must be a `$ref`
+  * The other elements must be a schema of type `object`
+
+In the supported cases, the code generated will consist of new class that:
+  * Contains all the attributes specified in the `object` element of the `allOf` array.
+  * Extends the class that references the `$ref` element of the `allOf` array.
